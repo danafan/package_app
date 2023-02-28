@@ -11,7 +11,11 @@
 			<div class="flex-1 scroll-y">
 				<div class="white_back flex ac jsb pt-10 pl-20 pb-10 pr-20" v-for="item in goodsList">
 					<div class="f14">{{item.sku_id}}</div>
-					<div class="flex ac dark_color">{{item.num}}件</div>
+					<div class="dark_color">{{item.num}}件</div>
+					<!-- <div class="flex ac">
+						<div class="flex ac dark_color mr-8">{{item.num}}件</div>
+						<img class="delete_icon" src="../static/delete_icon.png">
+					</div> -->
 				</div>
 			</div>
 		</div>
@@ -112,7 +116,7 @@
 				supplier_name:"",					//当前选中的供应商name
 				supplier_index:-1,					//当前选中的供应商下标
 				remark:"",							//备注
-				package_type:1,					//1:第一次打包；0:商家不一致确认之后第二次打包
+				package_type:1,			//1:第一次打包；0:商家不一致确认之后第二次打包
 			}
 		},
 		created(){
@@ -163,9 +167,7 @@
 					if (this.dataObj) {
 						arg.package_id = this.dataObj.package_id
 					}
-					this.$store.commit('setLoading',true);
 					resource.addGoods(arg).then(res => {
-						this.$store.commit('setLoading',false);
 						this.code = "";
 						if (res.data.code == 1) {
 							this.dataObj = res.data.data;
@@ -193,9 +195,7 @@
 					title:'提示',
 					message: '确定重置并删除包裹内所有商品吗？',
 				}).then(() => {
-					this.$store.commit('setLoading',true);
 					resource.packageReset({package_id:this.dataObj.package_id}).then(res => {
-						this.$store.commit('setLoading',false);
 						if(res.data.code == 1){
 							this.$toast(res.data.msg);
 							//判断是否有未完成的包裹
@@ -287,7 +287,9 @@
 			confirmPackage(){
 				if(!this.printer){
 					this.$dialog.alert({
-						message: '请选择打印机'
+						title:'提示',
+						message: '请先选择打印机',
+						confirmButtonText:'去选择'
 					}).then(() => {
 						this.$router.push('/printer');
 					});
@@ -300,13 +302,11 @@
 						wms_id: this.wms_id,
 						time: this.packageObj.time,
 						operator: this.packageObj.operator,
-						choose: '222',
+						choose: this.printer,
 						remark: this.remark,
 						type: this.package_type
 					}
-					this.$store.commit('setLoading',true);
 					resource.confirmPackage(arg).then(res => {
-						this.$store.commit('setLoading',false);
 						if (res.data.code == 1) {
 							this.package_info_dialog = false;
 							this.$toast(res.data.msg);
@@ -359,6 +359,10 @@
 		width: 20px;
 		height: 20px;
 	}
+}
+.delete_icon{
+	width:12px;
+	height: 12px;
 }
 .bottom_content{
 	height: 53px;

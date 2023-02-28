@@ -1,5 +1,6 @@
 import axios from "axios";
 const baseURL = `${location.origin}/`;
+import { Toast } from "vant";
 
 // 创建axios实例，可以自定义配置
 const instance = axios.create({
@@ -8,6 +9,11 @@ const instance = axios.create({
 
 instance.interceptors.request.use(
   (config) => {
+    Toast.loading({
+      message: '加载中...',
+      forbidClick: true,
+      duration:0
+    });
     return config;
   },
   (error) => {
@@ -16,6 +22,7 @@ instance.interceptors.request.use(
   );
 instance.interceptors.response.use(
   (response) => {
+    Toast.clear();
     return response;
     // switch (response.data.code) {
     //   case 0:
@@ -31,6 +38,7 @@ instance.interceptors.response.use(
     // }
   },
   function (error) {
+    Toast.clear();
     if (error.response) {
       switch (error.response.status) {
         case 404:

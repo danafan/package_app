@@ -1,7 +1,7 @@
 <template>
 	<div class="pl-12 pr-12">
 		<div class="page_top flex ac jsb">
-			<div class="f16 fw-500 text-overflow">杭州电子商务有限公司（彪子）</div>
+			<div class="f16 fw-500 text-overflow">杭州电子商务有限公司（{{userInfo.user_name}}）</div>
 			<div class="quit f12 white_color">退出</div>
 		</div>
 		<div class="menu_item width-100 flex ac jsb pl-10 pr-20 mb-15" @click="$router.push('/package_page')">
@@ -22,7 +22,12 @@
 </template>
 <script>
 	export default{
-		
+		computed:{
+			//用户信息
+			userInfo(){
+				return this.$store.state.userInfo;
+			}
+		},
 	}
 </script>
 <style lang="less">

@@ -1,24 +1,23 @@
 <template>
   <div id="app">
     <router-view></router-view>
-    <van-overlay :show="is_loading">
-      <div class="wrapper">
-        <van-loading type="spinner" color="#1989fa" />
-      </div>
-    </van-overlay>
   </div>
 </template>
 <script>
-  // import * as dd from 'dingtalk-jsapi';
+  import resource from './api/resource.js'
   export default {
-    computed:{
-      //加载中
-      is_loading(){
-        return this.$store.state.is_loading;
-      }
-    },
     created() {
-      this.$router.replace('/package_page');
+      resource.getUserInfo().then(res => {
+        if(res.data.code == 1){   //已登录
+          this.$router.replace('/index');
+          this.$store.commit('setUserInfo',res.data.data);
+        }else if(res.data.code == 10000){   //登录已过期
+          this.$router.replace('/login');
+        }else{
+          this.$toast(res.data.msg);
+        }
+      })
+      
     },
     watch:{
       $route:function(n,o){
@@ -31,10 +30,5 @@
   };
 </script>
 <style lang="less" scoped>
-.wrapper{
- display: flex;
- align-items: center;
- justify-content: center;
- height: 100%;
-}
+
 </style>

@@ -1,6 +1,7 @@
 import Vue from "vue";
 import Router from "vue-router";
 
+const login = (resolve) => require(["@/pages/login"], resolve);
 const index = (resolve) => require(["@/pages/index"], resolve);
 const package_page = (resolve) => require(["@/pages/package_page"], resolve);
 const printer = (resolve) => require(["@/pages/printer"], resolve);
@@ -9,6 +10,11 @@ Vue.use(Router);
 
 const router = new Router({
   routes: [
+  {
+    path: "/login",
+    component: login,
+    name: "登录",
+  },
   {
     path: "/index",
     component: index,
