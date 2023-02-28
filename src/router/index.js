@@ -4,6 +4,7 @@ import Router from "vue-router";
 const login = (resolve) => require(["@/pages/login"], resolve);
 const index = (resolve) => require(["@/pages/index"], resolve);
 const package_page = (resolve) => require(["@/pages/package_page"], resolve);
+const package_all = (resolve) => require(["@/pages/package_all"], resolve);
 const printer = (resolve) => require(["@/pages/printer"], resolve);
 
 Vue.use(Router);
@@ -24,6 +25,15 @@ const router = new Router({
     path: "/package_page",
     component: package_page,
     name: "打包",
+  },
+  {
+    path: "/package_all",
+    component: package_all,
+    meta:{
+      keepAlive:true,
+      isUseCache:false
+    },
+    name: "批量打包",
   },
   {
     path: "/printer",

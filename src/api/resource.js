@@ -10,6 +10,9 @@ let path = {
   ajaxWms:'ajax_wms',                                   //获取所有仓库
   ajaxSupplier:'api/package/ajaxsupplier',              //获取所有供应商
   printerList:'api/package/printer_list',               //打印机列表
+  addAllGoods:'api/package/check_sku',                  //批量添加商品
+  batchPack:'api/package/batch_pack',                   //批量打包
+  quit:'api/mobile/quit',                               //退出登录
 } 
 export default {
   //判断是否登录
@@ -51,5 +54,17 @@ export default {
   //打印机列表
   printerList(params) {
     return http.get(path.printerList, params);
+  },
+  //批量添加商品
+  addAllGoods(params) {
+    return http.post(path.addAllGoods, params);
+  },
+  //批量打包
+  batchPack(params) {
+    return http.post(path.batchPack, params);
+  },
+  //退出登录
+  quit(params) {
+    return http.get(path.quit, params);
   },
 };

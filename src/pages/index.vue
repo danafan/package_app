@@ -2,7 +2,7 @@
 	<div class="pl-12 pr-12">
 		<div class="page_top flex ac jsb">
 			<div class="f16 fw-500 text-overflow">杭州电子商务有限公司（{{userInfo.user_name}}）</div>
-			<div class="quit f12 white_color">退出</div>
+			<div class="quit f12 white_color" @click="quit">退出</div>
 		</div>
 		<div class="menu_item width-100 flex ac jsb pl-10 pr-20 mb-15" @click="$router.push('/package_page')">
 			<div class="flex ac">
@@ -11,7 +11,7 @@
 			</div>
 			<img class="r_arrow" src="../static/r_arrow.png">
 		</div>
-		<div class="menu_item width-100 flex ac jsb pl-10 pr-20">
+		<div class="menu_item width-100 flex ac jsb pl-10 pr-20" @click="$router.push('/package_all')">
 			<div class="flex ac">
 				<img class="menu_icon mr-15" src="../static/all_package.png">
 				<div class="f16 fw-500">批量打包</div>
@@ -21,6 +21,7 @@
 	</div>
 </template>
 <script>
+	import resource from '../api/resource.js'
 	export default{
 		computed:{
 			//用户信息
@@ -28,6 +29,25 @@
 				return this.$store.state.userInfo;
 			}
 		},
+		methods:{
+			quit(){
+				this.$dialog.confirm({
+					title:'提示',
+					message: '确认退出？',
+				}).then(() => {
+					resource.quit().then(res => {
+						if(res.data.code == 1){
+							this.$toast(res.data.msg);
+							this.$router.replace('/login');
+						}else{
+							this.$toast(res.data.msg);
+						}
+					})
+				}).catch(() => {
+					this.$toast('取消退出！');
+				});
+			}
+		}
 	}
 </script>
 <style lang="less">
