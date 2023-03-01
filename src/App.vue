@@ -21,6 +21,7 @@
     },
     created() {
       resource.getUserInfo().then(res => {
+      // resource.getUserInfo({admin_id:'8318'}).then(res => {
         if(res.data.code == 1){   //已登录
           this.$router.replace('/index');
           this.$store.commit('setUserInfo',res.data.data);

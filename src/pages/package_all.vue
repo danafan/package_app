@@ -187,12 +187,15 @@
 								return item.sku_id == this.code;
 							});
 							if (has_arr.length > 0) {
+								BSL.msgRing();
 								this.$toast('该商品已存在，请删除后重新录入！')
 								this.code = "";
 							} else {
+								BSL.Vibrator();
 								this.package_num_dialog = true;
 							}
 						} else {
+							BSL.msgRing();
 							this.$dialog.alert({
 								title:'提示',
 								message: res.data.msg,
@@ -208,6 +211,8 @@
 			//删除商品
 			deleteGoods(index) {
 				this.goodsList.splice(index,1);
+				this.$toast('已删除！')
+				BSL.Vibrator();
 			},
 			//确认数量
 			confirmNumber(){

@@ -210,6 +210,7 @@
 							BSL.Vibrator();
 							this.$refs.codeInput.focus();
 						} else {
+							BSL.msgRing();
 							this.$dialog.alert({
 								message: res.data.msg,
 								confirmButtonText:'我知道了'
