@@ -1,5 +1,6 @@
 <template>
 	<div class="container flex fc">
+		<header-bar title="选择打印机"/>
 		<div class="top_toast flex ac jc f16 fw-500">您可以选择指定的打印机！</div>
 		<div class="flex-1 scroll-y" v-if="printer_list.length > 0">
 			<div class="printer_item white_back flex ac jsb pl-20 pr-15" v-for="(item,index) in printer_list" @click="changePrinter(index)">
@@ -13,6 +14,8 @@
 </template>
 <script>
 	import resource from '../api/resource.js' 
+
+	import HeaderBar from '../components/header_bar.vue'
 	export default{
 		data(){
 			return{
@@ -49,6 +52,9 @@
 					this.$toast('请重新选择');
 				});
 			}
+		},
+		components:{
+			HeaderBar
 		}
 	}
 </script>

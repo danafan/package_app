@@ -1,8 +1,9 @@
 <template>
 	<div class="container flex fc">
+		<header-bar title="批量打包"/>
 		<div class="top_input flex ac pl-12 pr-12 mb-6">
 			<div class="flex-1 flex ac code_input pl-22 pr-22">
-				<input ref="codeInput" class="width-100 f12" placeholder="请输入唯一码" @keyup.enter="keyupEnter" v-model="code">
+				<input ref="codeInput" class="width-100 f12" placeholder="请输入商品编码" @keyup.enter="keyupEnter" v-model="code">
 			</div>
 			<img class="scan_icon ml-12" src="../static/scan_icon.png">
 		</div>
@@ -69,12 +70,12 @@
 				<!-- 供应商选择 -->
 				<div class="sheet_title flex ac jsb pl-15 pr-15" v-if="sheet_type == '1'">
 					<input class="search_supplier flex-1 pl-10 pr-10" v-model="search_supplier" placeholder="请输入供应商名称">
-					<img class="close_icon ml-15" src="../static/close_icon.png" @click="closeSheet">
+					<img class="close_icon ml-15" src="../static/close_icon.png" @click="action_sheet = false">
 				</div>
 				<!-- 仓库选择 -->
 				<div class="sheet_title relative flex ac jc" v-if="sheet_type == '2'">
 					<div class="f16 fw-500">{{sheet_title}}</div>
-					<img class="close_icon absolute" src="../static/close_icon.png" @click="closeSheet">
+					<img class="close_icon absolute" src="../static/close_icon.png" @click="action_sheet = false">
 				</div>
 				<!-- 供应商 -->
 				<div class="flex-1 scroll-y" v-if="sheet_type == '1'">
@@ -98,7 +99,10 @@
 </template>
 <script>
 	import resource from '../api/resource.js'
+
+	import HeaderBar from '../components/header_bar.vue'
 	export default{
+		inject: ["reload"],
 		data(){
 			return{
 				code:"",							//输入框的唯一码
@@ -121,9 +125,6 @@
 				remark:"",							//备注
 			}
 		},
-		mounted(){
-			this.$refs.codeInput.focus();
-		},
 		beforeRouteLeave(to,from,next){
 			if(to.path == '/printer'){	//选择打印机(缓存)
 				from.meta.isUseCache = true;
@@ -133,6 +134,7 @@
 			next();
 		},
 		activated(){
+			this.$refs.codeInput.focus();
 			//页面来源
 			this.page_type = this.$route.query.page_type;
 			if(!this.$route.meta.isUseCache){
@@ -187,6 +189,7 @@
 							});
 							if (has_arr.length > 0) {
 								this.$toast('该商品已存在，请删除后重新录入！')
+								this.code = "";
 							} else {
 								this.package_num_dialog = true;
 							}
@@ -195,6 +198,8 @@
 								title:'提示',
 								message: res.data.msg,
 								confirmButtonText:'我知道了'
+							}).then(() => {
+								this.code = "";
 							});
 						}
 					})
@@ -224,7 +229,15 @@
 			overPackage(){
 				if (this.goodsList.length == 0) {
 					this.$toast('还没有商品哦～')
-				} else {
+				}else if(!this.printer){
+					this.$dialog.alert({
+						title:'提示',
+						message: '请先选择打印机',
+						confirmButtonText:'去选择'
+					}).then(() => {
+						this.$router.push('/printer');
+					});
+				}else {
 					this.package_info_dialog = true;
 				}
 			},
@@ -277,23 +290,11 @@
 					default:
 					return;
 				}
-			},
-			//关闭底部弹出框
-			closeSheet(){
 				this.action_sheet = false;
-				this.$refs.codeInput.focus();
 			},
 			//确认打包
 			confirmPackage(){
-				if(!this.printer){
-					this.$dialog.alert({
-						title:'提示',
-						message: '请先选择打印机',
-						confirmButtonText:'去选择'
-					}).then(() => {
-						this.$router.push('/printer');
-					});
-				}else if(this.supplier_id == ''){
+				if(this.supplier_id == ''){
 					this.$toast('请选择供应商!');
 				}else{
 					let arg = {
@@ -307,7 +308,7 @@
 						if (res.data.code == 1) {
 							this.package_info_dialog = false;
 							this.$toast(res.data.msg);
-							this.$router.go(-1);
+							this.reload();
 						} else if (data.code == 100) {
 							this.$dialog.alert({
 								message: '当前打印机已掉线，请重新选择'
@@ -331,6 +332,9 @@
 					})
 				}
 			}
+		},
+		components:{
+			HeaderBar
 		}
 	}
 </script>

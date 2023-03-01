@@ -1,5 +1,6 @@
 <template>
 	<div class="container flex fc">
+		<header-bar title="打包"/>
 		<div class="top_input flex ac pl-12 pr-12 mb-6">
 			<div class="flex-1 flex ac code_input pl-22 pr-22">
 				<input ref="codeInput" class="width-100 f12" placeholder="请输入唯一码" @keyup.enter="keyupEnter" v-model="code">
@@ -12,15 +13,11 @@
 				<div class="white_back flex ac jsb pt-10 pl-20 pb-10 pr-20" v-for="item in goodsList">
 					<div class="f14">{{item.sku_id}}</div>
 					<div class="dark_color">{{item.num}}件</div>
-					<!-- <div class="flex ac">
-						<div class="flex ac dark_color mr-8">{{item.num}}件</div>
-						<img class="delete_icon" src="../static/delete_icon.png">
-					</div> -->
 				</div>
 			</div>
 		</div>
 		<div class="bottom_content width-100 flex ac jsb pl-20 pr-10">
-			<div class="black_color f14">共{{goodsList.length}}件商品</div>
+			<div class="black_color f14">共{{totalNum}}件商品</div>
 			<div class="flex">
 				<div class="botton f14 reset mr-8" @click="resetFn">重置</div>
 				<div class="botton f14 over white_color" @click="overPackage">完成打包</div>
@@ -35,19 +32,17 @@
 			<div class="pl-15 pr-15">
 				<div class="flex ac f14 mb-15">
 					<div>供应商：</div>
-					<div class="flex ac" @click="actionSheet('1')" v-if="supplier_id == ''">
-						<div>请选择</div>
+					<div class="flex ac" @click="actionSheet('1')">
+						<div>{{supplier_id == ''?'请选择':supplier_name}}</div>
 						<img class="r_arrow" src="../static/r_arrow.png">
 					</div>
-					<div v-else @click="actionSheet('1')">{{supplier_name}}</div>
 				</div>
 				<div class="flex ac f14 mb-15">
 					<div>仓库：</div>
-					<div class="flex ac" @click="actionSheet('2')" v-if="wms_id == ''">
-						<div>请选择</div>
+					<div class="flex ac" @click="actionSheet('2')">
+						<div>{{wms_id == ''?'请选择':wms_name}}</div>
 						<img class="r_arrow" src="../static/r_arrow.png">
 					</div>
-					<div v-else @click="actionSheet('2')">{{wms_name}}</div>
 				</div>
 				<div class="flex ac f14 mb-15">包裹号码：{{packageObj.packageId}}</div>
 				<div class="flex ac f14 mb-15">商品件数：{{packageObj.goodsNum}}</div>
@@ -66,12 +61,12 @@
 				<!-- 供应商选择 -->
 				<div class="sheet_title flex ac jsb pl-15 pr-15" v-if="sheet_type == '1'">
 					<input class="search_supplier flex-1 pl-10 pr-10" v-model="search_supplier" placeholder="请输入供应商名称">
-					<img class="close_icon ml-15" src="../static/close_icon.png" @click="closeSheet">
+					<img class="close_icon ml-15" src="../static/close_icon.png" @click="action_sheet = false">
 				</div>
 				<!-- 仓库选择 -->
 				<div class="sheet_title relative flex ac jc" v-if="sheet_type == '2'">
 					<div class="f16 fw-500">{{sheet_title}}</div>
-					<img class="close_icon absolute" src="../static/close_icon.png" @click="closeSheet">
+					<img class="close_icon absolute" src="../static/close_icon.png" @click="action_sheet = false">
 				</div>
 				<!-- 供应商 -->
 				<div class="flex-1 scroll-y" v-if="sheet_type == '1'">
@@ -95,7 +90,10 @@
 </template>
 <script>
 	import resource from '../api/resource.js'
+
+	import HeaderBar from '../components/header_bar.vue'
 	export default{
+		inject: ["reload"],
 		data(){
 			return{
 				code:"",							//输入框的唯一码
@@ -119,19 +117,55 @@
 				package_type:1,			//1:第一次打包；0:商家不一致确认之后第二次打包
 			}
 		},
-		created(){
-			//判断是否有未完成的包裹
-			this.unFinishedPackage();
-			//获取所有仓库
-			this.ajaxWms();
+		beforeRouteLeave(to,from,next){
+			if(to.path == '/printer'){	//选择打印机(缓存)
+				from.meta.isUseCache = true;
+			}else{
+				from.meta.isUseCache = false;
+			}
+			next();
 		},
-		mounted(){
+		activated(){
 			this.$refs.codeInput.focus();
+			//页面来源
+			this.page_type = this.$route.query.page_type;
+			if(!this.$route.meta.isUseCache){
+				//判断是否有未完成的包裹
+				this.unFinishedPackage();
+				//获取所有仓库
+				this.ajaxWms();
+				this.code = "";							//输入框的唯一码
+				this.dataObj =  null;           			//添加商品返回的供应商信息
+				this.goodsList = [];						//已添加的商品列表
+				this.package_info_dialog = false;			//确认包裹信息弹窗
+				this.packageObj = {};						//确认包裹信息
+				this.action_sheet = false;					//选择供应商/仓库
+				this.sheet_type = '1';						//1:供应商;2:仓库
+				this.sheet_title = "";						//选择供应商/仓库弹窗标题
+				this.wms_list = [];						//仓库列表
+				this.wms_id = "";							//当前选中的仓库ID
+				this.wms_name = "";						//当前选中的仓库name
+				this.wms_index = -1;						//当前选中的仓库下标
+				this.supplier_list = [];					//供应商列表
+				this.search_supplier = "";					//输入的供应商名称
+				this.supplier_id = "";						//当前选中的供应商ID
+				this.supplier_name = "";					//当前选中的供应商name
+				this.supplier_index = -1;					//当前选中的供应商下标
+				this.remark = "";							//备注
+				this.package_type = 1;		//1:第一次打包；0:商家不一致确认之后第二次打包
+			}
+			this.$route.meta.isUseCache = false;
 		},
 		computed:{
 			//打印机
 			printer(){
 				return this.$store.state.printer;
+			},
+			//商品总数量
+			totalNum(){
+				return this.goodsList.reduce((ageSum, item) => {
+					return ageSum + item.num;
+				},0)
 			}
 		},
 		watch:{
@@ -173,6 +207,7 @@
 							this.dataObj = res.data.data;
 							this.goodsList = res.data.goods;
 							this.$toast('添加成功');
+							BSL.Vibrator();
 							this.$refs.codeInput.focus();
 						} else {
 							this.$dialog.alert({
@@ -214,6 +249,14 @@
 			overPackage(){
 				if (this.goodsList.length == 0) {
 					this.$toast('还没有商品哦～')
+				}else if(!this.printer){
+					this.$dialog.alert({
+						title:'提示',
+						message: '请先选择打印机',
+						confirmButtonText:'去选择'
+					}).then(() => {
+						this.$router.push('/printer');
+					});
 				} else {
 					let arg = {
 						packageId:this.dataObj.package_id
@@ -277,23 +320,11 @@
 					default:
 					return;
 				}
-			},
-			//关闭底部弹出框
-			closeSheet(){
 				this.action_sheet = false;
-				this.$refs.codeInput.focus();
 			},
 			//确认打包
 			confirmPackage(){
-				if(!this.printer){
-					this.$dialog.alert({
-						title:'提示',
-						message: '请先选择打印机',
-						confirmButtonText:'去选择'
-					}).then(() => {
-						this.$router.push('/printer');
-					});
-				}else if(this.supplier_id == ''){
+				if(this.supplier_id == ''){
 					this.$toast('请选择供应商!');
 				}else{
 					let arg = {
@@ -310,7 +341,7 @@
 						if (res.data.code == 1) {
 							this.package_info_dialog = false;
 							this.$toast(res.data.msg);
-							this.$router.go(-1);
+							this.reload();
 						} else if (res.data.code == 100) {
 							this.$dialog.alert({
 								message: '当前打印机已掉线，请重新选择'
@@ -335,6 +366,9 @@
 					})
 				}
 			}
+		},
+		components:{
+			HeaderBar
 		}
 	}
 </script>

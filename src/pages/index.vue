@@ -1,5 +1,6 @@
 <template>
 	<div class="pl-12 pr-12">
+		<header-bar title="打包系统" :is_back="false"/>
 		<div class="page_top flex ac jsb">
 			<div class="f16 fw-500 text-overflow">杭州电子商务有限公司（{{userInfo.user_name}}）</div>
 			<div class="quit f12 white_color" @click="quit">退出</div>
@@ -22,6 +23,8 @@
 </template>
 <script>
 	import resource from '../api/resource.js'
+
+	import HeaderBar from '../components/header_bar.vue'
 	export default{
 		computed:{
 			//用户信息
@@ -47,6 +50,9 @@
 					this.$toast('取消退出！');
 				});
 			}
+		},
+		components:{
+			HeaderBar
 		}
 	}
 </script>

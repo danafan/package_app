@@ -24,6 +24,10 @@ const router = new Router({
   {
     path: "/package_page",
     component: package_page,
+    meta:{
+      keepAlive:true,
+      isUseCache:false
+    },
     name: "打包",
   },
   {
@@ -44,8 +48,8 @@ const router = new Router({
 });
 
 router.beforeEach((to, from, next) => {
-  console.log(to)
-  console.log(from)
+  // console.log(to)
+  // console.log(from)
   next();
 });
 

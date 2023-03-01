@@ -1,16 +1,26 @@
 <template>
   <div id="app">
     <keep-alive>
-      <router-view v-if="$route.meta.keepAlive"></router-view>
+      <router-view v-if="$route.meta.keepAlive && isRouterAlive"></router-view>
     </keep-alive>
-    <router-view v-if="!$route.meta.keepAlive"></router-view>
+    <router-view v-if="!$route.meta.keepAlive && isRouterAlive"></router-view>
   </div>
 </template>
 <script>
   import resource from './api/resource.js'
   export default {
+    provide () {
+      return {
+        reload: this.reload
+      }
+    },
+    data () {
+      return {
+        isRouterAlive: true
+      }
+    },
     created() {
-      resource.getUserInfo({ admin_id: "8318" }).then(res => {
+      resource.getUserInfo({admin_id:'8318'}).then(res => {
         if(res.data.code == 1){   //已登录
           this.$router.replace('/index');
           this.$store.commit('setUserInfo',res.data.data);
@@ -20,15 +30,15 @@
           this.$toast(res.data.msg);
         }
       })
-      
     },
-    watch:{
-      $route:function(n,o){
-        document.title = n.name;
+    methods:{
+      //单独页面刷新
+      reload () {
+        this.isRouterAlive = false
+        this.$nextTick( () => {
+          this.isRouterAlive = true
+        })
       }
-    },
-    methods: {
-
     }
   };
 </script>
