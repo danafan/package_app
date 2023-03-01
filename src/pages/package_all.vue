@@ -24,13 +24,12 @@
 		</div>
 		<!-- 输入数量 -->
 		<van-dialog v-model:show="package_num_dialog" :show-confirm-button="false">
-			<div class="relative flex ac jc pt-20 pb-20 f15 fw-600">
+			<div class="flex ac jc pt-20 pb-20 f15 fw-600">
 				<div>{{code}}</div>
-				<img class="close_icon absolute" src="../static/close_icon.png">
 			</div>
 			<div class="pl-15 pr-15">
 				<div class="flex ac f14 mb-15">
-					<div>数量：</div>
+					<div style="width:50px">数量：</div>
 					<input class="number flex-1" type="number" v-model="number" placeholder="请输入数量"></input>
 				</div>
 				<div class="confirm white_color f14 mb-15" @click="confirmNumber">确认</div>
@@ -81,8 +80,8 @@
 				<div class="flex-1 scroll-y" v-if="sheet_type == '1'">
 					<div class="sheet_item flex ac jsb pl-20 pr-20" v-for="(item,index) in supplier_list" @click="changeSheet(index,item.supplier_id,item.supplier_name)">
 						<div class="f16">{{item.supplier_name}}</div>
-						<img class="radio_icon" src="../static/radio_active.png" v-if="supplier_index == index">
-						<img class="radio_icon" src="../static/radio_icon.png" v-else>
+						<!-- <img class="radio_icon" src="../static/radio_active.png" v-if="supplier_index == index"> -->
+						<img class="radio_icon" src="../static/radio_icon.png">
 					</div>
 				</div>
 				<!-- 仓库 -->
@@ -200,6 +199,7 @@
 								confirmButtonText:'我知道了'
 							}).then(() => {
 								this.code = "";
+								this.$refs.codeInput.focus();
 							});
 						}
 					})

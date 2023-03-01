@@ -72,8 +72,8 @@
 				<div class="flex-1 scroll-y" v-if="sheet_type == '1'">
 					<div class="sheet_item flex ac jsb pl-20 pr-20" v-for="(item,index) in supplier_list" @click="changeSheet(index,item.supplier_id,item.supplier_name)">
 						<div class="f16">{{item.supplier_name}}</div>
-						<img class="radio_icon" src="../static/radio_active.png" v-if="supplier_index == index">
-						<img class="radio_icon" src="../static/radio_icon.png" v-else>
+						<!-- <img class="radio_icon" src="../static/radio_active.png" v-if="supplier_index == index"> -->
+						<img class="radio_icon" src="../static/radio_icon.png" >
 					</div>
 				</div>
 				<!-- 仓库 -->
