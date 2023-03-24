@@ -32,6 +32,10 @@
 				return this.$store.state.userInfo;
 			}
 		},
+		created(){
+			BSL.Vibrator();
+			this.$store.commit('setIsBsl',true);
+		},
 		methods:{
 			quit(){
 				this.$dialog.confirm({

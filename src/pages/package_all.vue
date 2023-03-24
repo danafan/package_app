@@ -187,15 +187,14 @@
 								return item.sku_id == this.code;
 							});
 							if (has_arr.length > 0) {
-								BSL.msgRing();
 								this.$toast('该商品已存在，请删除后重新录入！')
 								this.code = "";
+								BSL.msgRing();
 							} else {
-								BSL.Vibrator();
 								this.package_num_dialog = true;
+								BSL.Vibrator();
 							}
 						} else {
-							BSL.msgRing();
 							this.$dialog.alert({
 								title:'提示',
 								message: res.data.msg,
@@ -204,6 +203,7 @@
 								this.code = "";
 								this.$refs.codeInput.focus();
 							});
+							BSL.msgRing();
 						}
 					})
 				}

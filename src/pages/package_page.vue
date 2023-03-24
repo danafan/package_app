@@ -72,7 +72,6 @@
 				<div class="flex-1 scroll-y" v-if="sheet_type == '1'">
 					<div class="sheet_item flex ac jsb pl-20 pr-20" v-for="(item,index) in supplier_list" @click="changeSheet(index,item.supplier_id,item.supplier_name)">
 						<div class="f16">{{item.supplier_name}}</div>
-						<!-- <img class="radio_icon" src="../static/radio_active.png" v-if="supplier_index == index"> -->
 						<img class="radio_icon" src="../static/radio_icon.png" >
 					</div>
 				</div>
@@ -157,6 +156,9 @@
 			this.$route.meta.isUseCache = false;
 		},
 		computed:{
+			is_bsl(){
+				return this.$store.state.is_bsl;
+			},
 			//打印机
 			printer(){
 				return this.$store.state.printer;
@@ -207,16 +209,24 @@
 							this.dataObj = res.data.data;
 							this.goodsList = res.data.goods;
 							this.$toast('添加成功');
-							BSL.Vibrator();
 							this.$refs.codeInput.focus();
+							if(this.is_bsl){
+								BSL.Vibrator();
+							}else{
+								XY.jsAndroid("震动");
+							}
 						} else {
-							BSL.msgRing();
 							this.$dialog.alert({
 								message: res.data.msg,
 								confirmButtonText:'我知道了'
 							}).then(() => {
 								this.$refs.codeInput.focus();
 							});
+							if(this.is_bsl){
+								BSL.msgRing();
+							}else{
+								XY.jsAndroid("提醒");
+							}
 						}
 					})
 				}
