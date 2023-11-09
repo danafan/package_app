@@ -8,7 +8,10 @@
 			<img class="scan_icon ml-12" src="../static/scan_icon.png">
 		</div>
 		<div class="flex-1 flex fc">
-			<div class="white_back pt-10 pl-20 pb-10 f16 fw-500">商品列表</div>
+			<div class="flex jsb white_back pt-10 pl-20 pr-20 pb-10 f16 fw-500">
+				<div>商品列表</div>
+				<div>供应商：{{supplier_name}}</div>
+			</div>
 			<div class="flex-1 scroll-y">
 				<div class="white_back flex ac jsb pt-10 pl-20 pb-10 pr-20" v-for="item in goodsList">
 					<div class="f14">{{item.sku_id}}</div>
@@ -30,13 +33,7 @@
 				<img class="close_icon absolute" src="../static/close_icon.png" @click="package_info_dialog = false">
 			</div>
 			<div class="pl-15 pr-15">
-				<div class="flex ac f14 mb-15">
-					<div>供应商：</div>
-					<div class="flex ac" @click="actionSheet('1')">
-						<div>{{supplier_id == ''?'请选择':supplier_name}}</div>
-						<img class="r_arrow" src="../static/r_arrow.png">
-					</div>
-				</div>
+				<div class="flex ac f14 mb-15">供应商：{{supplier_name}}</div>
 				<div class="flex ac f14 mb-15">
 					<div>仓库：</div>
 					<div class="flex ac" @click="actionSheet('2')">
@@ -61,7 +58,6 @@
 				<!-- 供应商选择 -->
 				<div class="sheet_title flex ac jsb pl-15 pr-15" v-if="sheet_type == '1'">
 					<input class="search_supplier flex-1 pl-10 pr-10" v-model="search_supplier" placeholder="请输入供应商名称">
-					<img class="close_icon ml-15" src="../static/close_icon.png" @click="action_sheet = false">
 				</div>
 				<!-- 仓库选择 -->
 				<div class="sheet_title relative flex ac jc" v-if="sheet_type == '2'">
@@ -96,7 +92,7 @@
 		data(){
 			return{
 				code:"",							//输入框的唯一码
-				dataObj: null,           			//添加商品返回的供应商信息
+				package_id:"",
 				goodsList:[],						//已添加的商品列表
 				package_info_dialog:false,			//确认包裹信息弹窗
 				packageObj:{},						//确认包裹信息
@@ -133,17 +129,15 @@
 				this.unFinishedPackage();
 				//获取所有仓库
 				this.ajaxWms();
-				this.code = "";							//输入框的唯一码
-				this.dataObj =  null;           			//添加商品返回的供应商信息
+				this.code = "";								//输入框的唯一码
 				this.goodsList = [];						//已添加的商品列表
 				this.package_info_dialog = false;			//确认包裹信息弹窗
 				this.packageObj = {};						//确认包裹信息
-				this.action_sheet = false;					//选择供应商/仓库
 				this.sheet_type = '1';						//1:供应商;2:仓库
 				this.sheet_title = "";						//选择供应商/仓库弹窗标题
-				this.wms_list = [];						//仓库列表
+				this.wms_list = [];							//仓库列表
 				this.wms_id = "";							//当前选中的仓库ID
-				this.wms_name = "";						//当前选中的仓库name
+				this.wms_name = "";							//当前选中的仓库name
 				this.wms_index = -1;						//当前选中的仓库下标
 				this.supplier_list = [];					//供应商列表
 				this.search_supplier = "";					//输入的供应商名称
@@ -182,12 +176,27 @@
 				resource.unFinishedPackage().then(res => {
 					if(res.data.code == 0){			//有未完成的包裹
 						let data = res.data;
-						this.dataObj = data.data;
+						this.package_id = data.data.package_id;
+						if(data.data.gys){
+							this.supplier_name = data.data.gys.supplier_name;
+							this.supplier_id = data.data.gys.supplier_id;
+							this.action_sheet = false;					
+						}else{
+							this.supplier_name = '';
+							this.supplier_id = '';
+							this.sheet_type = '1';
+							this.sheet_title = '选择供应商';
+							this.action_sheet = true;					
+						}
 						this.goodsList = data.goods;
 					}else {
-						let data = res.data;
-						this.dataObj = null;
+						this.package_id = '';
+						this.supplier_name = '';
+						this.supplier_id = '';
 						this.goodsList = [];
+						this.sheet_type = '1';
+						this.sheet_title = '选择供应商';
+						this.action_sheet = true;
 					}
 				})
 			},
@@ -198,15 +207,16 @@
 				}else{
 					var arg = {
 						uniqNum: this.code,
+						supplier_id:this.supplier_id,
 						type: 1
 					}
-					if (this.dataObj) {
-						arg.package_id = this.dataObj.package_id
+					if (this.package_id) {
+						arg.package_id = this.package_id
 					}
 					resource.addGoods(arg).then(res => {
 						this.code = "";
 						if (res.data.code == 1) {
-							this.dataObj = res.data.data;
+							this.package_id = res.data.data.package_id;
 							this.goodsList = res.data.goods;
 							this.$toast('添加成功');
 							this.$refs.codeInput.focus();
@@ -241,7 +251,7 @@
 					title:'提示',
 					message: '确定重置并删除包裹内所有商品吗？',
 				}).then(() => {
-					resource.packageReset({package_id:this.dataObj.package_id}).then(res => {
+					resource.packageReset({package_id:this.package_id}).then(res => {
 						if(res.data.code == 1){
 							this.$toast(res.data.msg);
 							//判断是否有未完成的包裹
@@ -268,9 +278,9 @@
 					}).then(() => {
 						this.$router.push('/printer');
 					});
-				} else {
+				}else {
 					let arg = {
-						packageId:this.dataObj.package_id
+						packageId:this.package_id
 					}
 					resource.packageInfo(arg).then(res => {
 						if(res.data.code == 1){
@@ -339,7 +349,7 @@
 					this.$toast('请选择供应商!');
 				}else{
 					let arg = {
-						packageId: this.dataObj.package_id,
+						packageId: this.package_id,
 						supplier_id: this.supplier_id,
 						wms_id: this.wms_id,
 						time: this.packageObj.time,
