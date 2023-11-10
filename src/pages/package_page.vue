@@ -58,6 +58,7 @@
 				<!-- 供应商选择 -->
 				<div class="sheet_title flex ac jsb pl-15 pr-15" v-if="sheet_type == '1'">
 					<input class="search_supplier flex-1 pl-10 pr-10" v-model="search_supplier" placeholder="请输入供应商名称">
+					<van-checkbox v-model="is_verify" label-position="left">验证</van-checkbox>
 				</div>
 				<!-- 仓库选择 -->
 				<div class="sheet_title relative flex ac jc" v-if="sheet_type == '2'">
@@ -110,6 +111,7 @@
 				supplier_index:-1,					//当前选中的供应商下标
 				remark:"",							//备注
 				package_type:1,			//1:第一次打包；0:商家不一致确认之后第二次打包
+				is_verify:true,			//是否验证
 			}
 		},
 		beforeRouteLeave(to,from,next){
@@ -185,6 +187,7 @@
 							this.supplier_name = '';
 							this.supplier_id = '';
 							this.sheet_type = '1';
+							this.is_verify = true;
 							this.sheet_title = '选择供应商';
 							this.action_sheet = true;					
 						}
@@ -193,6 +196,7 @@
 						this.package_id = '';
 						this.supplier_name = '';
 						this.supplier_id = '';
+						this.is_verify = true;
 						this.goodsList = [];
 						this.sheet_type = '1';
 						this.sheet_title = '选择供应商';
@@ -208,6 +212,7 @@
 					var arg = {
 						uniqNum: this.code,
 						supplier_id:this.supplier_id,
+						is_verify:this.is_verify?1:0,
 						type: 1
 					}
 					if (this.package_id) {
@@ -329,175 +334,176 @@
 				this.active_index = index;
 				switch(this.sheet_type){
 					case '1': 		//供应商
-					this.supplier_index = index;
-					this.supplier_id = id;
-					this.supplier_name = name;
-					break;
+						this.supplier_index = index;
+						this.supplier_id = id;
+						this.supplier_name = name;
+						break;
 					case '2': 		//仓库
-					this.wms_index = index;
-					this.wms_id = id;
-					this.wms_name = name;
-					break;
+						this.wms_index = index;
+						this.wms_id = id;
+						this.wms_name = name;
+						break;
 					default:
-					return;
-				}
-				this.action_sheet = false;
-			},
-			//确认打包
-			confirmPackage(){
-				if(this.supplier_id == ''){
-					this.$toast('请选择供应商!');
-				}else{
-					let arg = {
-						packageId: this.package_id,
-						supplier_id: this.supplier_id,
-						wms_id: this.wms_id,
-						time: this.packageObj.time,
-						operator: this.packageObj.operator,
-						choose: this.printer,
-						remark: this.remark,
-						type: this.package_type
+						return;
 					}
-					resource.confirmPackage(arg).then(res => {
-						if (res.data.code == 1) {
-							this.package_info_dialog = false;
-							this.$toast(res.data.msg);
-							this.reload();
-						} else if (res.data.code == 100) {
-							this.$dialog.alert({
-								message: '当前打印机已掉线，请重新选择'
-							}).then(() => {
-								this.$router.push('/printer');
-							});
-						} else if (res.data.code == 0) {
-							this.$dialog.confirm({
-								title:'提示',
-								message: res.data.msg,
-							}).then(() => {
-								this.package_type = 0;
-								this.confirmPackage();
-							}).catch(() => {
-								this.package_info_dialog = false;
-								this.$toast('取消打包');
-								this.$refs.codeInput.focus();
-							});
-						} else {
-							this.$toast(res.data.msg)
+					this.action_sheet = false;
+				},
+			//确认打包
+				confirmPackage(){
+					if(this.supplier_id == ''){
+						this.$toast('请选择供应商!');
+					}else{
+						let arg = {
+							packageId: this.package_id,
+							supplier_id: this.supplier_id,
+							wms_id: this.wms_id,
+							time: this.packageObj.time,
+							operator: this.packageObj.operator,
+							choose: this.printer,
+							remark: this.remark,
+							type: this.package_type
 						}
-					})
+						resource.confirmPackage(arg).then(res => {
+							if (res.data.code == 1) {
+								this.package_info_dialog = false;
+								this.$toast(res.data.msg);
+								this.reload();
+							} else if (res.data.code == 100) {
+								this.$dialog.alert({
+									message: '当前打印机已掉线，请重新选择'
+								}).then(() => {
+									this.$router.push('/printer');
+								});
+							} else if (res.data.code == 0) {
+								this.$dialog.confirm({
+									title:'提示',
+									message: res.data.msg,
+								}).then(() => {
+									this.package_type = 0;
+									this.confirmPackage();
+								}).catch(() => {
+									this.package_info_dialog = false;
+									this.$toast('取消打包');
+									this.$refs.codeInput.focus();
+								});
+							} else {
+								this.$toast(res.data.msg)
+							}
+						})
+					}
+				}
+			},
+			components:{
+				HeaderBar
+			}
+		}
+	</script>
+	<style lang="less" scoped>
+		.top_input{
+			background-color: #ffffff;
+			height: 46px;
+			.code_input{
+				border-radius: 15px;
+				background-color: #EDEDED;
+				height: 30px;
+				line-height: 30px;
+				input{
+					background-color: #EDEDED;
+					height: 25px;
+					line-height: 25px;
+					outline: none;
+					border: none;
 				}
 			}
-		},
-		components:{
-			HeaderBar
-		}
-	}
-</script>
-<style lang="less" scoped>
-.top_input{
-	background-color: #ffffff;
-	height: 46px;
-	.code_input{
-		border-radius: 15px;
-		background-color: #EDEDED;
-		height: 30px;
-		line-height: 30px;
-		input{
-			background-color: #EDEDED;
-			height: 25px;
-			line-height: 25px;
-			outline: none;
-			border: none;
-		}
-	}
-	.scan_icon{
-		width: 20px;
-		height: 20px;
-	}
-}
-.delete_icon{
-	width:12px;
-	height: 12px;
-}
-.bottom_content{
-	height: 53px;
-	background: #FFFFFF;
-	border-top: 1px solid #DBDBDB;
-	.botton{
-		border-radius: 16px;
-		border:1px solid #0389FF;
-		width:94px;
-		text-align: center;
-		height: 32px;
-		line-height: 30px;
-	}
-	.reset{
-		color: #0389FF;
-	}
-	.over{
-		background-color: #0389FF;
-	}
-}
-.close_icon{
-	width:12px;
-	height: 12px;
-	right: 15px;
-	top: 15px;
-}
-.r_arrow{
-	margin-left: 5px;
-	width:6px;
-	height: 10.8px;
-}
-.remark{
-	padding: 5px;
-	outline: none;
-	background-color: #F8F8F8;
-	border:1px solid #F1F1F1;
-}
-.confirm{
-	margin: 0 auto 15px;
-	width: 110px;
-	text-align: center;
-	height: 30px;
-	line-height: 31px;
-	background: #0389FF;
-	border-radius: 20px;
-}
-.action_sheet{
-	justify-content: flex-end;
-	background-color: rgba(0,0,0,0.8);
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	z-index: 9999999;
-	.sheet_content{
-		border-radius: 12px 12px 0 0;
-		height: 200px;
-		.sheet_title{
-			height: 50px;
-			.search_supplier{
-				border:1px solid #F1F1F1;
-				outline: none;
-				background-color: #F8F8F8;
-				height: 30px;
-			}
-			.close_icon{
-				right: 15px;
-				top:50%;
-				transform: translate(0,-50%);
-			}
-		}
-		.sheet_item{
-			height: 55px;
-			border-bottom: 1px solid #F7F7F7;
-			.radio_icon{
-				width:20px;
+			.scan_icon{
+				width: 20px;
 				height: 20px;
 			}
 		}
-	}
-}
-</style>
+		.delete_icon{
+			width:12px;
+			height: 12px;
+		}
+		.bottom_content{
+			height: 53px;
+			background: #FFFFFF;
+			border-top: 1px solid #DBDBDB;
+			.botton{
+				border-radius: 16px;
+				border:1px solid #0389FF;
+				width:94px;
+				text-align: center;
+				height: 32px;
+				line-height: 30px;
+			}
+			.reset{
+				color: #0389FF;
+			}
+			.over{
+				background-color: #0389FF;
+			}
+		}
+		.close_icon{
+			width:12px;
+			height: 12px;
+			right: 15px;
+			top: 15px;
+		}
+		.r_arrow{
+			margin-left: 5px;
+			width:6px;
+			height: 10.8px;
+		}
+		.remark{
+			padding: 5px;
+			outline: none;
+			background-color: #F8F8F8;
+			border:1px solid #F1F1F1;
+		}
+		.confirm{
+			margin: 0 auto 15px;
+			width: 110px;
+			text-align: center;
+			height: 30px;
+			line-height: 31px;
+			background: #0389FF;
+			border-radius: 20px;
+		}
+		.action_sheet{
+			justify-content: flex-end;
+			background-color: rgba(0,0,0,0.8);
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			z-index: 9999999;
+			.sheet_content{
+				border-radius: 12px 12px 0 0;
+				height: 200px;
+				.sheet_title{
+					height: 50px;
+					.search_supplier{
+						margin-right: 10px;
+						border:1px solid #F1F1F1;
+						outline: none;
+						background-color: #F8F8F8;
+						height: 30px;
+					}
+					.close_icon{
+						right: 15px;
+						top:50%;
+						transform: translate(0,-50%);
+					}
+				}
+				.sheet_item{
+					height: 55px;
+					border-bottom: 1px solid #F7F7F7;
+					.radio_icon{
+						width:20px;
+						height: 20px;
+					}
+				}
+			}
+		}
+	</style>
