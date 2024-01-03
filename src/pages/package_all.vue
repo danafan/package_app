@@ -94,6 +94,14 @@
 				</div>
 			</div>
 		</div>
+		<van-dialog v-model="show" title="请选择">
+			<div class="padding_style">
+				<van-radio-group v-model="is_check_return" direction="horizontal">
+					<van-radio name="1">是</van-radio>
+					<van-radio name="0">否</van-radio>
+				</van-radio-group>
+			</div>
+		</van-dialog>
 	</div>
 </template>
 <script>
@@ -122,6 +130,8 @@
 				supplier_name:"",					//当前选中的供应商name
 				supplier_index:-1,					//当前选中的供应商下标
 				remark:"",							//备注
+				show:true,
+				is_check_return:'1',
 			}
 		},
 		beforeRouteLeave(to,from,next){
@@ -137,6 +147,8 @@
 			//页面来源
 			this.page_type = this.$route.query.page_type;
 			if(!this.$route.meta.isUseCache){
+				this.show = true;
+				this.is_check_return = '1';
 				//获取所有仓库
 				this.ajaxWms();
 				this.code = "";							//输入框的唯一码
@@ -179,7 +191,8 @@
 					this.$toast('请扫描商品编码！');
 				}else{
 					var arg = {
-						sku_id: this.code
+						sku_id: this.code,
+						is_check_return:this.is_check_return
 					}
 					resource.addAllGoods(arg).then(res => {
 						if (res.data.code == 1) {
@@ -283,179 +296,185 @@
 				this.active_index = index;
 				switch(this.sheet_type){
 					case '1': 		//供应商
-					this.supplier_index = index;
-					this.supplier_id = id;
-					this.supplier_name = name;
-					break;
+						this.supplier_index = index;
+						this.supplier_id = id;
+						this.supplier_name = name;
+						break;
 					case '2': 		//仓库
-					this.wms_index = index;
-					this.wms_id = id;
-					this.wms_name = name;
-					break;
+						this.wms_index = index;
+						this.wms_id = id;
+						this.wms_name = name;
+						break;
 					default:
-					return;
-				}
-				this.action_sheet = false;
-			},
-			//确认打包
-			confirmPackage(){
-				if(this.supplier_id == ''){
-					this.$toast('请选择供应商!');
-				}else{
-					let arg = {
-						data: JSON.stringify(this.goodsList),
-						supplier_id: this.supplier_id,
-						remark: this.remark,
-						printer: this.printer,
-						wms_id: this.wms_id
+						return;
 					}
-					resource.batchPack(arg).then(res => {
-						if (res.data.code == 1) {
-							this.package_info_dialog = false;
-							this.$toast(res.data.msg);
-							this.reload();
-						} else if (data.code == 100) {
-							this.$dialog.alert({
-								message: '当前打印机已掉线，请重新选择'
-							}).then(() => {
-								this.$router.push('/printer');
-							});
-						} else if (data.code == 0) {
-							this.$dialog.confirm({
-								title:'提示',
-								message: res.data.msg,
-							}).then(() => {
-								this.confirmPackage();
-							}).catch(() => {
-								this.package_info_dialog = false;
-								this.$toast('取消打包');
-								this.$refs.codeInput.focus();
-							});
-						} else {
-							this.$toast(res.data.msg)
+					this.action_sheet = false;
+				},
+			//确认打包
+				confirmPackage(){
+					if(this.supplier_id == ''){
+						this.$toast('请选择供应商!');
+					}else{
+						let arg = {
+							data: JSON.stringify(this.goodsList),
+							supplier_id: this.supplier_id,
+							remark: this.remark,
+							printer: this.printer,
+							wms_id: this.wms_id
 						}
-					})
+						resource.batchPack(arg).then(res => {
+							if (res.data.code == 1) {
+								this.package_info_dialog = false;
+								this.$toast(res.data.msg);
+								this.reload();
+							} else if (data.code == 100) {
+								this.$dialog.alert({
+									message: '当前打印机已掉线，请重新选择'
+								}).then(() => {
+									this.$router.push('/printer');
+								});
+							} else if (data.code == 0) {
+								this.$dialog.confirm({
+									title:'提示',
+									message: res.data.msg,
+								}).then(() => {
+									this.confirmPackage();
+								}).catch(() => {
+									this.package_info_dialog = false;
+									this.$toast('取消打包');
+									this.$refs.codeInput.focus();
+								});
+							} else {
+								this.$toast(res.data.msg)
+							}
+						})
+					}
+				}
+			},
+			components:{
+				HeaderBar
+			}
+		}
+	</script>
+	<style lang="less" scoped>
+		.top_input{
+			background-color: #ffffff;
+			height: 46px;
+			.code_input{
+				border-radius: 15px;
+				background-color: #EDEDED;
+				height: 30px;
+				line-height: 30px;
+				input{
+					background-color: #EDEDED;
+					height: 25px;
+					line-height: 25px;
+					outline: none;
+					border: none;
 				}
 			}
-		},
-		components:{
-			HeaderBar
-		}
-	}
-</script>
-<style lang="less" scoped>
-.top_input{
-	background-color: #ffffff;
-	height: 46px;
-	.code_input{
-		border-radius: 15px;
-		background-color: #EDEDED;
-		height: 30px;
-		line-height: 30px;
-		input{
-			background-color: #EDEDED;
-			height: 25px;
-			line-height: 25px;
-			outline: none;
-			border: none;
-		}
-	}
-	.scan_icon{
-		width: 20px;
-		height: 20px;
-	}
-}
-.delete_icon{
-	width:12px;
-	height: 12px;
-}
-.bottom_content{
-	height: 53px;
-	background: #FFFFFF;
-	border-top: 1px solid #DBDBDB;
-	.botton{
-		border-radius: 16px;
-		border:1px solid #0389FF;
-		width:94px;
-		text-align: center;
-		height: 32px;
-		line-height: 30px;
-	}
-	.reset{
-		color: #0389FF;
-	}
-	.over{
-		background-color: #0389FF;
-	}
-}
-.close_icon{
-	width:12px;
-	height: 12px;
-	right: 15px;
-	top: 15px;
-}
-.r_arrow{
-	margin-left: 5px;
-	width:6px;
-	height: 10.8px;
-}
-.number{
-	padding: 0 25px;
-	outline: none;
-	height: 38px;
-	background: #F8F8F8;
-	border-radius: 21px;
-	border: 1px solid #F1F1F1;
-}
-.remark{
-	padding: 5px;
-	outline: none;
-	background-color: #F8F8F8;
-	border:1px solid #F1F1F1;
-}
-.confirm{
-	margin: 0 auto 15px;
-	width: 110px;
-	text-align: center;
-	height: 30px;
-	line-height: 31px;
-	background: #0389FF;
-	border-radius: 20px;
-}
-.action_sheet{
-	justify-content: flex-end;
-	background-color: rgba(0,0,0,0.8);
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	z-index: 9999999;
-	.sheet_content{
-		border-radius: 12px 12px 0 0;
-		height: 200px;
-		.sheet_title{
-			height: 50px;
-			.search_supplier{
-				border:1px solid #F1F1F1;
-				outline: none;
-				background-color: #F8F8F8;
-				height: 30px;
-			}
-			.close_icon{
-				right: 15px;
-				top:50%;
-				transform: translate(0,-50%);
-			}
-		}
-		.sheet_item{
-			height: 55px;
-			border-bottom: 1px solid #F7F7F7;
-			.radio_icon{
-				width:20px;
+			.scan_icon{
+				width: 20px;
 				height: 20px;
 			}
 		}
-	}
-}
-</style>
+		.delete_icon{
+			width:12px;
+			height: 12px;
+		}
+		.bottom_content{
+			height: 53px;
+			background: #FFFFFF;
+			border-top: 1px solid #DBDBDB;
+			.botton{
+				border-radius: 16px;
+				border:1px solid #0389FF;
+				width:94px;
+				text-align: center;
+				height: 32px;
+				line-height: 30px;
+			}
+			.reset{
+				color: #0389FF;
+			}
+			.over{
+				background-color: #0389FF;
+			}
+		}
+		.close_icon{
+			width:12px;
+			height: 12px;
+			right: 15px;
+			top: 15px;
+		}
+		.r_arrow{
+			margin-left: 5px;
+			width:6px;
+			height: 10.8px;
+		}
+		.number{
+			padding: 0 25px;
+			outline: none;
+			height: 38px;
+			background: #F8F8F8;
+			border-radius: 21px;
+			border: 1px solid #F1F1F1;
+		}
+		.remark{
+			padding: 5px;
+			outline: none;
+			background-color: #F8F8F8;
+			border:1px solid #F1F1F1;
+		}
+		.confirm{
+			margin: 0 auto 15px;
+			width: 110px;
+			text-align: center;
+			height: 30px;
+			line-height: 31px;
+			background: #0389FF;
+			border-radius: 20px;
+		}
+		.action_sheet{
+			justify-content: flex-end;
+			background-color: rgba(0,0,0,0.8);
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			z-index: 9999999;
+			.sheet_content{
+				border-radius: 12px 12px 0 0;
+				height: 200px;
+				.sheet_title{
+					height: 50px;
+					.search_supplier{
+						border:1px solid #F1F1F1;
+						outline: none;
+						background-color: #F8F8F8;
+						height: 30px;
+					}
+					.close_icon{
+						right: 15px;
+						top:50%;
+						transform: translate(0,-50%);
+					}
+				}
+				.sheet_item{
+					height: 55px;
+					border-bottom: 1px solid #F7F7F7;
+					.radio_icon{
+						width:20px;
+						height: 20px;
+					}
+				}
+			}
+		}
+		.padding_style{
+			display: flex;
+			justify-content: center;
+			padding-top: 30px;
+			padding-bottom: 30px;
+		}
+	</style>

@@ -59,6 +59,7 @@
 				<div class="sheet_title flex ac jsb pl-15 pr-15" v-if="sheet_type == '1'">
 					<input class="search_supplier flex-1 pl-10 pr-10" v-model="search_supplier" placeholder="请输入供应商名称">
 					<van-checkbox v-model="is_verify" label-position="left">验证</van-checkbox>
+					<van-checkbox v-model="is_check_return" label-position="left">验证可退</van-checkbox>
 				</div>
 				<!-- 仓库选择 -->
 				<div class="sheet_title relative flex ac jc" v-if="sheet_type == '2'">
@@ -110,8 +111,9 @@
 				supplier_name:"",					//当前选中的供应商name
 				supplier_index:-1,					//当前选中的供应商下标
 				remark:"",							//备注
-				package_type:1,			//1:第一次打包；0:商家不一致确认之后第二次打包
-				is_verify:true,			//是否验证
+				package_type:1,						//1:第一次打包；0:商家不一致确认之后第二次打包
+				is_verify:true,						//是否验证
+				is_check_return:true,				//是否验证可退
 			}
 		},
 		beforeRouteLeave(to,from,next){
@@ -188,6 +190,7 @@
 							this.supplier_id = '';
 							this.sheet_type = '1';
 							this.is_verify = true;
+							this.is_check_return = true;
 							this.sheet_title = '选择供应商';
 							this.action_sheet = true;					
 						}
@@ -197,6 +200,7 @@
 						this.supplier_name = '';
 						this.supplier_id = '';
 						this.is_verify = true;
+						this.is_check_return = true;
 						this.goodsList = [];
 						this.sheet_type = '1';
 						this.sheet_title = '选择供应商';
@@ -213,6 +217,7 @@
 						uniqNum: this.code,
 						supplier_id:this.supplier_id,
 						is_verify:this.is_verify?1:0,
+						is_check_return:this.is_check_return?1:0,
 						type: 1
 					}
 					if (this.package_id) {
@@ -398,6 +403,15 @@
 			}
 		}
 	</script>
+	<style type="text/css">
+		.van-checkbox{
+			width: 140px!important;
+			overflow: visible!important;
+		}
+		.van-checkbox__label{
+			white-space: nowrap;
+		}
+	</style>
 	<style lang="less" scoped>
 		.top_input{
 			background-color: #ffffff;
@@ -489,6 +503,7 @@
 						outline: none;
 						background-color: #F8F8F8;
 						height: 30px;
+						width: 140px;
 					}
 					.close_icon{
 						right: 15px;
